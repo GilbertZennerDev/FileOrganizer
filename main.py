@@ -3,6 +3,7 @@ allow the user to list all files of type 'x'
 """
 
 from pathlib import Path
+import sys
 
 def all_types(what):
     # Image files
@@ -49,16 +50,34 @@ def all_types(what):
 
 def list_filetype(rootfolder, gtype, *ty):
     root = Path(rootfolder)
+    result = all_types(gtype)
+    if result is None: exit()
     for t in all_types(gtype):
         files = root.rglob(t)
         for file in files: print(file.resolve())
 
-list_filetype('.', 'images')
-print('='*30)
-list_filetype('.', 'docs', '*.py', '*.c', '*.md')
-print('='*30)
-#list_filetype('testfiles', 'all', '*.py', '*.c', '*.md')
-print('='*30)
+def handle_list():
+    list_cmds = ['images', 'docs', 'sheets', 'presentations', 'audio', 'video', 'archives', 'code', 'misc', 'all']
+    print("Optional list commands:", list_cmds)
+    if len(sys.argv) < 3: list_filetype('.', 'all')
+    else:
+        folder = '.'
+        types = 'all'
+        if len(sys.argv) >= 4 and sys.argv[3] == '-f': folder = sys.argv[4];
+        types = sys.argv[2]
+        list_filetype(folder, types)
 
-if __name__ == "__main__":
-    pass
+def test_list():
+    list_filetype('.', 'images')
+    print('='*30)
+    list_filetype('.', 'docs')
+    print('='*30)
+    list_filetype('testfiles', 'all')
+    print('='*30)
+
+def main():
+    cmds = ['list']
+    if len(sys.argv) < 2: print("Usage: python3 main.py", cmds); exit()
+    if sys.argv[1] == 'list': handle_list()
+
+if __name__ == "__main__": main()
