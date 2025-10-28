@@ -2,8 +2,9 @@
 allow the user to list all files of type 'x'
 """
 
-from pathlib import Path
 import sys
+import subprocess as sp
+from pathlib import Path
 
 def all_types(what):
     # Image files
@@ -48,24 +49,36 @@ def all_types(what):
     if what == 'all': return all_types
     return None
 
+def getrelativepath(file):
+    return Path(file.resolve()).relative_to(Path.cwd())
+
+def sort_filetype(rootfolder, gtype, *ty):
+    root = Path(rootfolder)
+    result = all_types(gtype)
+    if result is None: exit()
+    sp.run(['mkdir', '-p', f'test/{gtype}'])
+    for t in result:
+        for file in root.rglob(t):
+            sp.run(f'cp -r {getrelativepath(file)} test/{gtype}', shell=True)
+
 def list_filetype(rootfolder, gtype, *ty):
     root = Path(rootfolder)
     result = all_types(gtype)
     if result is None: exit()
-    for t in all_types(gtype):
-        files = root.rglob(t)
-        for file in files: print(file.resolve())
+    for t in result:
+        for file in root.rglob(t): print(f"relative path: ./{getrelativepath(file)}")
 
-def handle_list():
+def handle_list(what):
     list_cmds = ['images', 'docs', 'sheets', 'presentations', 'audio', 'video', 'archives', 'code', 'misc', 'all']
     print("Optional list commands:", list_cmds)
     if len(sys.argv) < 3: list_filetype('.', 'all')
     else:
-        folder = '.'
+        folder = Path.cwd()
         types = 'all'
         if len(sys.argv) >= 4 and sys.argv[3] == '-f': folder = sys.argv[4];
         types = sys.argv[2]
-        list_filetype(folder, types)
+        if what == 'list': list_filetype(folder, types)
+        elif what == 'sort':  sort_filetype(folder, types)
 
 def test_list():
     list_filetype('.', 'images')
@@ -78,6 +91,6 @@ def test_list():
 def main():
     cmds = ['list']
     if len(sys.argv) < 2: print("Usage: python3 main.py", cmds); exit()
-    if sys.argv[1] == 'list': handle_list()
+    if sys.argv[1] == 'list' or sys.argv[1] == 'sort': handle_list(sys.argv[1])
 
 if __name__ == "__main__": main()
