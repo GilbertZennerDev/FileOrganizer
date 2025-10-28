@@ -1,4 +1,4 @@
-"""this program will help you organize the files in your folder
+lean"""this program will help you organize the files in your folder
 allow the user to list all files of type 'x'
 """
 
@@ -71,11 +71,10 @@ def list_filetype(rootfolder, gtype, *ty):
 def handle_list(what):
     list_cmds = ['images', 'docs', 'sheets', 'presentations', 'audio', 'video', 'archives', 'code', 'misc', 'all']
     print("Optional list commands:", list_cmds)
-    if len(sys.argv) < 3: list_filetype('.', 'all')
-    else:
-        folder = Path.cwd()
-        types = 'all'
-        if len(sys.argv) >= 4 and sys.argv[3] == '-f': folder = sys.argv[4];
+    folder = Path.cwd()
+    if len(sys.argv) < 3: list_filetype(folder, 'all')
+    if len(sys.argv) > 3:
+        if sys.argv[3] == '-f': folder = sys.argv[4];
         types = sys.argv[2]
         if what == 'list': list_filetype(folder, types)
         elif what == 'sort':  sort_filetype(folder, types)
