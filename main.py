@@ -7,6 +7,7 @@ import sys
 import subprocess as sp
 from pathlib import Path
 import hashlib
+import shutil
 
 def get_pure_filename(total_name):
     total_name = str(total_name)
@@ -128,6 +129,10 @@ def find_duplicates(rootfolder, gtype):
         if counter > 1: print(f"tmp: {name} exists {counter} times.")
         else: print(f"tmp: {name}  has no duplicates.")
 
+def compress_file(filename):
+    print("compressed", filename)
+    shutil.make_archive(filename + '_compressed', "zip", root_dir=filename)
+
 def test_list():
     list_filetype('.', 'images')
     print('='*30)
@@ -141,8 +146,11 @@ def main():
     ac = len(sys.argv)
     if ac < 2: print("Usage: python3 main.py", cmds); exit()
     if sys.argv[1] in 'listsort': handle_list(sys.argv[1])
-    if sys.argv[1] in 'piece' and ac > 2: list_piece('.', 'all', sys.argv[2])
-    #find_duplicates('.', 'all')
-    #list_piece('.', 'all', 'cat')
+    if sys.argv[1] in 'piece' and ac > 2:
+            if ac > 3: list_piece('.', sys.argv[3], sys.argv[2])
+            else: list_piece('.', 'all', sys.argv[2])
+    if sys.argv[1] in 'duplicate': find_duplicates('.', 'all')
+    if sys.argv[1] in 'compress' and ac >= 3: compress_file(sys.argv[2])
+    #compress_file(sys.argv[2])
 
 if __name__ == "__main__": main()
