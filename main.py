@@ -133,6 +133,10 @@ def compress_file(filename):
     print("compressed", filename)
     shutil.make_archive(filename + '_compressed', "zip", root_dir=filename)
 
+def decompress_file(filename):
+    print("decompressed", filename)
+    shutil.unpack_archive(filename, ".")
+
 def test_list():
     list_filetype('.', 'images')
     print('='*30)
@@ -150,7 +154,7 @@ def main():
             if ac > 3: list_piece('.', sys.argv[3], sys.argv[2])
             else: list_piece('.', 'all', sys.argv[2])
     if sys.argv[1] in 'duplicate': find_duplicates('.', 'all')
-    if sys.argv[1] in 'compress' and ac >= 3: compress_file(sys.argv[2])
-    #compress_file(sys.argv[2])
+    if sys.argv[1] == 'compress' and ac >= 3: compress_file(sys.argv[2])
+    if sys.argv[1] == 'decompress' and ac >= 3: decompress_file(sys.argv[2])
 
 if __name__ == "__main__": main()
