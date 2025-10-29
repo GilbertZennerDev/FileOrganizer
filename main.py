@@ -6,6 +6,13 @@ allow the user to list all files of type 'x'
 import sys
 import subprocess as sp
 from pathlib import Path
+import hashlib
+
+def get_pure_filename(total_name):
+    total_name = str(total_name)
+    while '/' in total_name:
+        total_name = total_name[total_name.index('/') + 1:]
+    return total_name
 
 def all_types(what):
     # Image files
@@ -51,9 +58,9 @@ def all_types(what):
     return None
 
 def getrelativepath(file):
-    return Path(file.resolve()).relative_to(Path.cwd())
+    return str(Path(file.resolve()).relative_to(Path.cwd()))
 
-def sort_filetype(rootfolder, gtype, *ty):
+def sort_filetype(rootfolder, gtype):
     root = Path(rootfolder)
     result = all_types(gtype)
     if result is None: exit()
@@ -62,12 +69,23 @@ def sort_filetype(rootfolder, gtype, *ty):
         for file in root.rglob(t):
             sp.run(f'cp -r {getrelativepath(file)} test/{gtype}', shell=True)
 
-def list_filetype(rootfolder, gtype, *ty):
+def list_filetype(rootfolder, gtype):
     root = Path(rootfolder)
     result = all_types(gtype)
     if result is None: exit()
     for t in result:
         for file in root.rglob(t): print(f"relative path: ./{getrelativepath(file)}")
+
+def list_piece(rootfolder, gtype, piece):
+    root = Path(rootfolder)
+    result = all_types(gtype)
+    if result is None: exit()
+    for t in result:
+        for file in root.rglob(t):
+            rel_path = getrelativepath(file)
+            name = get_pure_filename(rel_path)
+            if piece in name:
+                print(f"relative path: ./{getrelativepath(file)}")
 
 def handle_list(what):
     list_cmds = ['images', 'docs', 'sheets', 'presentations', 'audio', 'video', 'archives', 'code', 'misc', 'all']
@@ -81,6 +99,35 @@ def handle_list(what):
     if what == 'list': list_filetype(folder, types)
     elif what == 'sort':  sort_filetype(folder, types)
 
+def checksum(path, algo="sha256"):
+    h = hashlib.new(algo)
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+def find_checksum(allnames, searched_checksum):
+    counter = 0
+    hashednames = [checksum(name) for name in allnames]
+    for cksum in hashednames:
+        if cksum == searched_checksum: counter += 1
+    return counter
+
+def find_duplicates(rootfolder, gtype):
+    root = Path(rootfolder)
+    result = all_types(gtype)
+    if result is None: exit()
+    allnames = []
+    for t in result:
+        for file in root.rglob(t):
+            allnames.append(str(getrelativepath(file)))
+    allnames = set(allnames)
+    print(allnames)
+    for name in allnames:
+        counter = find_checksum(allnames, checksum(name))
+        if counter > 1: print(f"tmp: {name} exists {counter} times.")
+        else: print(f"tmp: {name}  has no duplicates.")
+
 def test_list():
     list_filetype('.', 'images')
     print('='*30)
@@ -91,7 +138,11 @@ def test_list():
 
 def main():
     cmds = ['list']
-    if len(sys.argv) < 2: print("Usage: python3 main.py", cmds); exit()
-    if sys.argv[1] == 'list' or sys.argv[1] == 'sort': handle_list(sys.argv[1])
+    ac = len(sys.argv)
+    if ac < 2: print("Usage: python3 main.py", cmds); exit()
+    if sys.argv[1] in 'listsort': handle_list(sys.argv[1])
+    if sys.argv[1] in 'piece' and ac > 2: list_piece('.', 'all', sys.argv[2])
+    #find_duplicates('.', 'all')
+    #list_piece('.', 'all', 'cat')
 
 if __name__ == "__main__": main()
