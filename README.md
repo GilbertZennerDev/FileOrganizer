@@ -1,4 +1,4 @@
-🗂️ Folder Organizer CLI
+🗂️ File Organizer CLI
 
 A simple Python tool to list, sort, and compress files by type — straight from your terminal.
 Built for people who like clean folders and clean code.
