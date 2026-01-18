@@ -4,10 +4,10 @@ allow the user to list all files of type 'x'
 """
 
 import sys
+import shutil
+import hashlib
 import subprocess as sp
 from pathlib import Path
-import hashlib
-import shutil
 
 def get_pure_filename(total_name):
     total_name = str(total_name)
@@ -89,16 +89,17 @@ def list_piece(rootfolder, gtype, piece):
                 print(f"relative path: ./{getrelativepath(file)}")
 
 def handle_list(what):
-    list_cmds = ['images', 'docs', 'sheets', 'presentations', 'audio', 'video', 'archives', 'code', 'misc', 'all']
-    print("Optional list commands:", list_cmds)
-    folder = Path.cwd()
-    types = 'all'
-    if len(sys.argv) < 3: list_filetype(folder, 'all')
-    elif len(sys.argv) == 3: types = sys.argv[2]
-    else:
-        if sys.argv[3] == '-f': folder = sys.argv[4];
-    if what == 'list': list_filetype(folder, types)
-    elif what == 'sort':  sort_filetype(folder, types)
+	av = sys.argv
+	list_cmds = ['images', 'docs', 'sheets', 'presentations', 'audio', 'video', 'archives', 'code', 'misc', 'all']
+	print("Optional list commands:", list_cmds)
+	folder = Path.cwd()
+	types = 'all'
+	if len(av) < 3: list_filetype(folder, 'all')
+	elif len(av) == 3: types = av[2]
+	else:
+		if av[3] == '-f': folder = av[4];
+	if what == 'list': list_filetype(folder, types)
+	elif what == 'sort':  sort_filetype(folder, types)
 
 def checksum(path, algo="sha256"):
     h = hashlib.new(algo)
@@ -147,14 +148,15 @@ def test_list():
 
 def main():
     cmds = ['list']
-    ac = len(sys.argv)
-    if ac < 2: print("Usage: python3 main.py", cmds); exit()
-    if sys.argv[1] in 'listsort': handle_list(sys.argv[1])
-    if sys.argv[1] in 'piece' and ac > 2:
-            if ac > 3: list_piece('.', sys.argv[3], sys.argv[2])
-            else: list_piece('.', 'all', sys.argv[2])
-    if sys.argv[1] in 'duplicate': find_duplicates('.', 'all')
-    if sys.argv[1] == 'compress' and ac >= 3: compress_file(sys.argv[2])
-    if sys.argv[1] == 'decompress' and ac >= 3: decompress_file(sys.argv[2])
+    av = sys.argv
+    ac = len(av)
+    if ac < 2: print("Usage: python3 app.py", cmds); exit()
+    if av[1] in 'listsort': handle_list(av[1])
+    if av[1] in 'piece' and ac > 2:
+            if ac > 3: list_piece('.', av[3], av[2])
+            else: list_piece('.', 'all', av[2])
+    if av[1] in 'duplicate': find_duplicates('.', 'all')
+    if av[1] == 'compress' and ac >= 3: compress_file(av[2])
+    if av[1] == 'decompress' and ac >= 3: decompress_file(av[2])
 
 if __name__ == "__main__": main()
